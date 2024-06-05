@@ -117,29 +117,12 @@ You can change the folders for speakers and the folder for output via the API.
 
 # Use Docker image with Docker Compose
 
-A Dockerfile is provided to build a Docker image, and a docker-compose.yml file is provided to run the server with Docker Compose as a service.
+This pre-installs a couple of extra things so that the RunPod doesn't have to install them every time and makes sure the latents folder is set up.
 
-You can build the image with the following command:
-
-```bash
-mkdir xtts-api-server
-cd xtts-api-server
-docker run -d Haurrus/xtts-api-server
-
-```
-
-OR
-
-```bash
-cd docker
-docker compose build
-```
-
-Then you can run the server with the following command:
-
-```bash
-docker compose up # or with -d to run in background
-```
+And to run it locally (at least on Windows):
+Open and run Docker Desktop (https://www.docker.com/products/docker-desktop/)
+Build the Dockerfile by running docker build -t xtts -f docker/Dockerfile . in a command line while in the XTTS directory (the xtts part can be named to anything)
+Run the server via docker run -p 8020:8020 xtts
 
 # Note on creating samples for quality voice cloning
 
