@@ -120,8 +120,11 @@ You can change the folders for speakers and the folder for output via the API.
 This pre-installs a couple of extra things so that the RunPod doesn't have to install them every time and makes sure the latents folder is set up.
 
 And to run it locally (at least on Windows):
+
 Open and run Docker Desktop (https://www.docker.com/products/docker-desktop/)
+
 Build the Dockerfile by running docker build -t xtts -f docker/Dockerfile . in a command line while in the XTTS directory (the xtts part can be named to anything)
+
 Run the server via docker run -p 8020:8020 xtts
 
 # Note on creating samples for quality voice cloning
