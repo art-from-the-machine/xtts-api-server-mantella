@@ -124,7 +124,7 @@ You can build the image with the following command:
 ```bash
 mkdir xtts-api-server
 cd xtts-api-server
-docker run -d daswer123/xtts-api-server
+docker run -d Haurrus/xtts-api-server
 
 ```
 
