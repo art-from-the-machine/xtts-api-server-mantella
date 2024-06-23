@@ -53,7 +53,7 @@ MODEL_VERSION = XTTS.model_version
 # Create version string
 version_string = ""
 if MODEL_SOURCE == "api" or MODEL_VERSION == "main":
-    version_string = "lastest"
+    version_string = "latest"
 else:
     version_string = MODEL_VERSION
 
@@ -136,6 +136,7 @@ class SynthesisRequest(BaseModel):
     text: str
     speaker_wav: Optional[str] = None
     language: str
+    accent: Optional[str] = None
     save_path: Optional[str] = None
 
 class SynthesisFileRequest(BaseModel):
@@ -310,6 +311,7 @@ async def tts_to_audio(request: SynthesisRequest, background_tasks: BackgroundTa
                 text=request.text,
                 speaker_name_or_path=request.speaker_wav,
                 language=request.language.lower(),
+                accent=request.accent,
                 file_name_or_path=request.save_path
             )
             
