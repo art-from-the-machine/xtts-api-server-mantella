@@ -623,16 +623,16 @@ class TTSWrapper:
         text = re.sub(r'"\s?(.*?)\s?"', r"'\1'", text)
         return text
 
-    async def stream_generation(self,text,speaker_name,speaker_wav,language,output_file):
+    async def stream_generation(self,text,speaker_name,speaker_wav,language,accent,output_file):
         # Log time
         generate_start_time = time.time()  # Record the start time of loading the model
 
-        gpt_cond_latent, speaker_embedding = self.get_or_create_latents(speaker_name, speaker_wav,language)
+        gpt_cond_latent, speaker_embedding = self.get_or_create_latents(speaker_name, speaker_wav, language)
         file_chunks = []
 
         chunks = self.model.inference_stream(
             text,
-            language,
+            accent,
             speaker_embedding=speaker_embedding,
             gpt_cond_latent=gpt_cond_latent,
             **self.tts_settings, # Expands the object with the settings and applies them for generation
@@ -660,15 +660,15 @@ class TTSWrapper:
 
         logger.info(f"Processing time: {generate_elapsed_time:.2f} seconds.")
 
-    def local_generation(self,text,speaker_name,speaker_wav,language,output_file):
+    def local_generation(self,text,speaker_name,speaker_wav,language,accent,output_file):
         # Log time
         generate_start_time = time.time()  # Record the start time of loading the model
 
-        gpt_cond_latent, speaker_embedding = self.get_or_create_latents(speaker_name, speaker_wav,language)
+        gpt_cond_latent, speaker_embedding = self.get_or_create_latents(speaker_name, speaker_wav, language)
 
         out = self.model.inference(
             text,
-            language,
+            accent,
             gpt_cond_latent=gpt_cond_latent,
             speaker_embedding=speaker_embedding,
             **self.tts_settings, # Expands the object with the settings and applies them for generation
@@ -681,11 +681,11 @@ class TTSWrapper:
 
         logger.info(f"Processing time: {generate_elapsed_time:.2f} seconds.")
 
-    def api_generation(self,text,speaker_wav,language,output_file):
+    def api_generation(self,text,speaker_wav,language,accent,output_file):
         self.model.tts_to_file(
                 text=text,
                 speaker_wav=speaker_wav,
-                language=language,
+                language=accent,
                 file_path=output_file,
         )
 
@@ -707,13 +707,15 @@ class TTSWrapper:
         return speaker_wav
 
     # MAIN FUNC
-    def process_tts_to_file(self, text, speaker_name_or_path, language, file_name_or_path="out.wav", stream=False):
+    def process_tts_to_file(self, text, speaker_name_or_path, language, accent=None, file_name_or_path="out.wav", stream=False):
         if file_name_or_path == '' or file_name_or_path is None:
             file_name_or_path = "out.wav"
         try:
             # Normalize speaker name and ensure language code is in lower case for consistency
             speaker_name = speaker_name_or_path.lower()
             language_code = language.lower()
+
+            accent = language if accent is None else accent
 
             # Adjusted path for JSON file in the latent speaker folder to include language
             speaker_json_directory = Path(self.latent_speaker_folder) / language_code
@@ -769,6 +771,7 @@ class TTSWrapper:
               'text': clear_text,
               'speaker_name_or_path': speaker_name_or_path,
               'language': language,
+              'accent': accent,
               'file_name_or_path': file_name_or_path
             }
 
@@ -785,16 +788,16 @@ class TTSWrapper:
             if self.model_source == "local":
                 if stream:
                     async def stream_fn():
-                        async for chunk in self.stream_generation(clear_text,speaker_name_or_path,speaker_wav,language,output_file):
+                        async for chunk in self.stream_generation(clear_text,speaker_name_or_path,speaker_wav,language,accent,output_file):
                             yield chunk
                         self.switch_model_device()
                         # After generation completes successfully...
                         self.update_cache(text_params,output_file)
                     return stream_fn()
                 else:
-                    self.local_generation(clear_text,speaker_name_or_path,speaker_wav,language,output_file)
+                    self.local_generation(clear_text,speaker_name_or_path,speaker_wav,language,accent,output_file)
             else:
-                self.api_generation(clear_text,speaker_wav,language,output_file)
+                self.api_generation(clear_text,speaker_wav,language,accent,output_file)
             
             self.switch_model_device() # Unload to CPU if lowram ON
 
