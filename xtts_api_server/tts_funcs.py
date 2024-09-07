@@ -20,6 +20,13 @@ import socket
 import io
 import wave
 import numpy as np
+import sys
+
+# Remove the default logger to avoid conflicts
+logger.remove()
+
+# Add a new logger for console output, ensuring it doesn't prompt for input
+logger.add(sys.stdout, format="{time} {level} {message}", level="INFO", enqueue=True)
 
 # Class to check tts settings
 class InvalidSettingsError(Exception):
@@ -83,7 +90,6 @@ class TTSWrapper:
 
         self.create_directories()
         check_tts_version()
-
         self.enable_cache_results = enable_cache_results
         self.cache_file_path = os.path.join(output_folder, "cache.json")
 
