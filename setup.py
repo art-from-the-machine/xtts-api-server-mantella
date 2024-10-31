@@ -14,17 +14,18 @@ setup(
         'stream2sentence==0.2.2',
         'fastapi>=0.104.1',
         'loguru',
-        'pydantic',
+        'pydantic==2.9.2',
         'pydub',
         'python-dotenv',
-        'torch',
-        'torchaudio',
+        'torch==2.2.1',
+        'torchaudio==2.2.1',
         'uvicorn',
         'cutlet',
         'fugashi[unidic-lite]',
         'tts==0.21.3',
         'transformers==4.36.2',
         'uuid',
+        'spacy==3.7.4'
     ],
     entry_points={
         'console_scripts': [
