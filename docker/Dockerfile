@@ -30,4 +30,4 @@ RUN pip install .
 EXPOSE 8020
 
 # Command to run the server
-CMD ["bash", "-c", "python3 -m xtts_api_server --listen -p 8020 -t 'http://localhost:8020' -lsf 'latent_speaker_folder' -o 'output' -mf 'xtts_models' -d 'cuda' --deepspeed"]
+CMD ["bash", "-c", "python3 -m xtts_api_server --listen -p 8020 -lsf 'latent_speaker_folder' -o 'output' -mf 'xtts_models' -d 'cuda' --deepspeed"]
