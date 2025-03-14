@@ -7,10 +7,13 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
     ports:
       - "${HOST_PORT:-8020}:${CONTAINER_PORT:-8020}"
     volumes:
-      - ./xtts-server:/xtts-server
+      - ./xtts-server:/app/xtts-server
     deploy:
       resources:
         reservations:

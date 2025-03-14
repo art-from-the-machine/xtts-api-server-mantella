@@ -7,8 +7,6 @@ loguru
 pydantic
 pydub
 python-dotenv
-torch
-torchaudio
 uvicorn
 cutlet
 fugashi[unidic-lite]
