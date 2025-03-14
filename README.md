@@ -29,7 +29,7 @@ pip install -r requirements.txt
 pip install torch==2.1.1+cu118 torchaudio==2.1.1+cu118 --index-url https://download.pytorch.org/whl/cu118
 # Launch server
 python -m xtts_api_server
- 
+
 ```
 ## Mantella specific
 
@@ -118,7 +118,7 @@ You can change the folders for speakers and the folder for output via the API.
 # Use Docker image with Docker Compose
 
 A Dockerfile is provided to build a Docker image, and a docker-compose.yml file is provided to run the server with Docker Compose as a service.
-
+`
 You can build the image with the following command:
 
 ```bash
