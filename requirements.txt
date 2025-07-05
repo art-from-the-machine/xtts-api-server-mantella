@@ -7,8 +7,8 @@ loguru
 pydantic==2.9.2
 pydub
 python-dotenv
-torch==2.2.1
-torchaudio==2.2.1
+torch==2.7
+torchaudio==2.7
 uvicorn
 cutlet
 fugashi[unidic-lite]
