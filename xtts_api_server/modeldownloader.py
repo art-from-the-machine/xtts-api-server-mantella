@@ -48,7 +48,7 @@ def install_deepspeed_based_on_python_version():
 
         # Define your package links here
         py310_win = "https://github.com/daswer123/xtts-webui/releases/download/deepspeed/deepspeed-0.11.2+cuda118-cp310-cp310-win_amd64.whl"
-        py311_win = "https://github.com/daswer123/xtts-webui/releases/download/deepspeed/deepspeed-0.11.2+cuda118-cp311-cp311-win_amd64.whl"
+        py311_win = "https://github.com/art-from-the-machine/xtts-api-server-mantella/releases/download/deepspeed/deepspeed-0.17.2+cuda128-cp311-cp311-win_amd64.whl"
 
         # Use generic pip install deepspeed for Linux or custom wheels for Windows.
         deepspeed_link = None
@@ -62,10 +62,10 @@ def install_deepspeed_based_on_python_version():
 
             else:
                 logger.error("Unsupported Python version on Windows.")
-                deepspeed_link = 'deepspeed==0.15.2'
+                deepspeed_link = 'deepspeed==0.17.2'
 
         else: # Assuming Linux/MacOS otherwise (add specific checks if necessary)
-             deepspeed_link = 'deepspeed==0.15.2'
+             deepspeed_link = 'deepspeed==0.17.2'
 
         if deepspeed_link:
              logger.info("Installing DeepSpeed...")
