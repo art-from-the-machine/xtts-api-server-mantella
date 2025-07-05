@@ -62,10 +62,10 @@ def install_deepspeed_based_on_python_version():
 
             else:
                 logger.error("Unsupported Python version on Windows.")
-                deepspeed_link = 'deepspeed==0.17.2'
+                deepspeed_link = 'deepspeed==0.17.1'
 
         else: # Assuming Linux/MacOS otherwise (add specific checks if necessary)
-             deepspeed_link = 'deepspeed==0.17.2'
+             deepspeed_link = 'deepspeed==0.17.1'
 
         if deepspeed_link:
              logger.info("Installing DeepSpeed...")
