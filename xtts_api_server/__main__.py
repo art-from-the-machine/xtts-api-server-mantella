@@ -168,7 +168,10 @@ def main():
 
     # Run the uvicorn server
     from xtts_api_server.server import app
-    uvicorn.run(app, host=host_ip, port=port)
+    # Keep idle connections open for 5 minutes so that
+    # clients reusing pooled connections don't pay
+    # a fresh TCP handshake on the first voiceline of each response.
+    uvicorn.run(app, host=host_ip, port=port, timeout_keep_alive=300)
 
 if __name__ == "__main__":
     main()
