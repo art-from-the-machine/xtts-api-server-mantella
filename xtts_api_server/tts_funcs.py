@@ -128,7 +128,13 @@ class TTSWrapper:
             out.setframerate(sample_rate)
             out.writeframes(b"")
         wav_buf.seek(0)
-        return wav_buf.read()
+        header = bytearray(wav_buf.read())
+        # The wave module wrote RIFF/data chunk sizes for an empty file, which
+        # makes strict decoders stop immediately. Patch both sizes to the
+        # streaming convention of 0xFFFFFFFF ("unknown, read until EOF").
+        header[4:8] = b"\xff\xff\xff\xff"
+        header[-4:] = b"\xff\xff\xff\xff"
+        return bytes(header)
 
     # CACHE FUNCS
     def check_cache(self, text_params):
@@ -628,7 +634,7 @@ class TTSWrapper:
         text = re.sub(r'"\s?(.*?)\s?"', r"'\1'", text)
         return text
 
-    async def stream_generation(self,text,speaker_name,speaker_wav,language,accent,output_file):
+    def stream_generation(self,text,speaker_name,speaker_wav,language,accent,output_file):
         # Log time
         generate_start_time = time.time()  # Record the start time of loading the model
 
@@ -780,8 +786,10 @@ class TTSWrapper:
               'file_name_or_path': file_name_or_path
             }
 
-            # Check if results are already cached.
-            cached_result = self.check_cache(text_params)
+            # Check if results are already cached. Cached results are file
+            # paths, which streaming callers cannot consume, so skip the
+            # lookup when streaming (the result is still cached afterwards).
+            cached_result = None if stream else self.check_cache(text_params)
 
             if cached_result is not None:
                 logger.info("Using cached result.")
@@ -792,12 +800,15 @@ class TTSWrapper:
             # Define generation if model via api or locally
             if self.model_source == "local":
                 if stream:
-                    async def stream_fn():
-                        async for chunk in self.stream_generation(clear_text,speaker_name_or_path,speaker_wav,language,accent,output_file):
-                            yield chunk
-                        self.switch_model_device()
-                        # After generation completes successfully...
-                        self.update_cache(text_params,output_file)
+                    def stream_fn():
+                        try:
+                            yield from self.stream_generation(clear_text,speaker_name_or_path,speaker_wav,language,accent,output_file)
+                            # After generation completes successfully...
+                            self.update_cache(text_params,output_file)
+                        finally:
+                            # Unload to CPU if lowvram ON, even if the client
+                            # disconnected mid-stream.
+                            self.switch_model_device()
                     return stream_fn()
                 else:
                     self.local_generation(clear_text,speaker_name_or_path,speaker_wav,language,accent,output_file)

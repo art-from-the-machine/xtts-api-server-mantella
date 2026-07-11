@@ -84,9 +84,28 @@ All versions of the XTTSv2 model can be found [here](https://huggingface.co/coqu
 
 The first time you run or generate, you may need to confirm that you agree to use XTTS.
 
-# About Streaming mode
+# About HTTP streaming (`/tts_stream`)
 
-Streaming mode allows you to get audio and play it back almost immediately. However, it has a number of limitations.
+The `/tts_stream` endpoint streams audio over HTTP as it is generated, so playback can start almost immediately instead of waiting for the whole file. It works with local models (`-ms local`, the default) and requires no special server flags.
+
+Request it via GET with query parameters:
+
+```
+GET /tts_stream?text=Hello%20there&speaker_wav=alduin&language=en
+```
+
+or via POST with a JSON body:
+
+```json
+POST /tts_stream
+{"text": "Hello there", "speaker_wav": "alduin", "language": "en", "accent": "en"}
+```
+
+The response is a WAV stream (`audio/x-wav`, 24 kHz mono 16-bit PCM).
+
+# About Streaming mode (local playback)
+
+Streaming mode (`--streaming-mode`) is different from HTTP streaming: the server plays the audio through its own sound card via RealtimeTTS and returns a silent WAV to the client. However, it has a number of limitations.
 
 You can see how this mode works [here](https://www.youtube.com/watch?v=jHylNGQDDA0) and [here](https://www.youtube.com/watch?v=6vhrxuWcV3U)
 

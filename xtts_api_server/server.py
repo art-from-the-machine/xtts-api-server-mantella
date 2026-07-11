@@ -1,5 +1,6 @@
 from TTS.api import TTS
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Query
+from fastapi.concurrency import iterate_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse,StreamingResponse
 
@@ -156,6 +157,7 @@ class TTSStreamRequest(BaseModel):
     text: str
     speaker_wav: Optional[str] = None
     language: str
+    accent: Optional[str] = None
     save_path: Optional[str] = None
 
 @app.get("/speakers_list")
@@ -238,34 +240,50 @@ def set_tts_settings_endpoint(tts_settings_req: TTSSettingsRequest):
         logger.error(e)
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get('/tts_stream')
-async def tts_stream(request: TTSStreamRequest):
+def stream_tts_response(http_request: Request, text: str, speaker_wav: str, language: str, accent: Optional[str] = None):
     # Validate local model source.
     if XTTS.model_source != "local":
         raise HTTPException(status_code=400,
                             detail="HTTP Streaming is only supported for local models.")
     # Validate language code against supported languages.
-    if request.language.lower() not in supported_languages:
+    if language.lower() not in supported_languages:
         raise HTTPException(status_code=400,
                             detail="Language code sent is either unsupported or misspelled.")
-            
-    async def generator():
+
+    # Resolve the speaker and build the chunk generator up front so invalid
+    # requests fail with an HTTP error instead of dying mid-stream.
+    try:
         chunks = XTTS.process_tts_to_file(
-            text=request.text,
-            speaker_name_or_path=request.speaker_wav,
-            language=request.language.lower(),
+            text=text,
+            speaker_name_or_path=speaker_wav,
+            language=language.lower(),
+            accent=accent,
             stream=True,
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    async def generator():
         # Write file header to the output stream.
         yield XTTS.get_wav_header()
-        async for chunk in chunks:
+        # Model inference is blocking, so iterate it in a worker thread to
+        # keep the event loop (and therefore the byte stream) responsive.
+        async for chunk in iterate_in_threadpool(chunks):
             # Check if the client is still connected.
-            disconnected = await request.is_disconnected()
+            disconnected = await http_request.is_disconnected()
             if disconnected:
                 break
             yield chunk
 
     return StreamingResponse(generator(), media_type='audio/x-wav')
+
+@app.get('/tts_stream')
+async def tts_stream(http_request: Request, text: str = Query(), speaker_wav: str = Query(), language: str = Query(), accent: Optional[str] = Query(None)):
+    return stream_tts_response(http_request, text, speaker_wav, language, accent)
+
+@app.post('/tts_stream')
+async def tts_stream_post(http_request: Request, request: TTSStreamRequest):
+    return stream_tts_response(http_request, request.text, request.speaker_wav, request.language, request.accent)
 
 @app.post("/tts_to_audio/")
 async def tts_to_audio(request: SynthesisRequest, background_tasks: BackgroundTasks):
@@ -305,7 +323,7 @@ async def tts_to_audio(request: SynthesisRequest, background_tasks: BackgroundTa
     else:
         try:
             if XTTS.model_source == "local":
-              logger.info(f"Processing TTS to audio with request: {request}")
+              logger.info("Processing TTS to audio from request")
 
             # Validate language code against supported languages.
             if request.language.lower() not in supported_languages:
@@ -339,7 +357,7 @@ async def tts_to_audio(request: SynthesisRequest, background_tasks: BackgroundTa
 async def tts_to_file(request: SynthesisFileRequest):
     try:
         if XTTS.model_source == "local":
-          logger.info(f"Processing TTS to file with request: {request}")
+          logger.info("Processing TTS to audio from request")
 
         # Validate language code against supported languages.
         if request.language.lower() not in supported_languages:
@@ -381,5 +399,5 @@ async def show_disclaimer():
     print(disclaimer_message)
 
 if __name__ == "__main__":
-    disable_quick_edit()
+    # disable_quick_edit()
     uvicorn.run(app, host="0.0.0.0", port=8020, log_level="info", access_log=True)
