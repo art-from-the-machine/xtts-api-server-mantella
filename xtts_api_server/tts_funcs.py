@@ -79,7 +79,7 @@ class TTSWrapper:
         self.model_source = model_source
         self.model_version = model_version
         self.tts_settings = default_tts_settings
-        self.stream_chunk_size = 100
+        self.stream_chunk_size = 20
 
         self.deepspeed = deepspeed
 
