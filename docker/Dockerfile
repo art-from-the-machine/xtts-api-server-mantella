@@ -5,7 +5,7 @@ FROM pytorch/pytorch:2.7.0-cuda12.8-cudnn9-devel
 LABEL description="Docker image for xtts-api-server"
 
 # Install required packages
-RUN apt-get update && apt-get install --no-install-recommends -y python3-dev portaudio19-dev libportaudio2 libasound2-dev libportaudiocpp0 git python3-pip make g++ ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y python3-dev portaudio19-dev libportaudio2 libasound2-dev libportaudiocpp0 git python3-pip make g++ ffmpeg socat && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install virtualenv
 RUN python3 -m pip install --upgrade pip setuptools wheel ninja virtualenv
@@ -30,4 +30,4 @@ RUN pip install .
 EXPOSE 8020
 
 # Command to run the server
-CMD ["bash", "-c", "python3 -m xtts_api_server --listen -p 8020 -lsf 'latent_speaker_folder' -o 'output' -mf 'xtts_models' -d 'cuda' --deepspeed"]
+CMD ["bash", "-c", "socat TCP-LISTEN:8021,fork,reuseaddr,nodelay TCP:127.0.0.1:8020,nodelay & python3 -m xtts_api_server --listen -p 8020 -lsf 'latent_speaker_folder' -o 'output' -mf 'xtts_models' -d 'cuda' --deepspeed"]
